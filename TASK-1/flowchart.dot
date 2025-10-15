@@ -1,0 +1,113 @@
+digraph ATM_Sistemi {
+    rankdir=LR;
+    node [shape=rectangle, style=rounded, fontname="Arial"];
+
+    // Başlangıç ve bitiş
+    start [label="BAŞLA", shape=circle, style=filled, fillcolor=lightgreen];
+    end [label="BİTİR", shape=doublecircle, style=filled, fillcolor=lightgray];
+
+    // Giriş ve PIN
+    dil [label="Dil seçimi: Türkçe / English"];
+    giris_tipi [label="Kart tak veya QR kod ile giriş"];
+    hatali_giris [label="Geçersiz giriş!\nİşlem sonlandırıldı"];
+    pin_giris [label="PIN gir (3 deneme hakkı)"];
+    pin_hata [label="Hatalı PIN"];
+    pin_dogru [label="PIN doğrulandı"];
+    kart_yutuldu [label="3 Hatalı PIN!\nKart yutuldu"];
+    para_birimi [label="Para birimi seçin: TL / USD / EUR"];
+
+    // Menü ve işlemler
+    menu [label="ANA MENÜ\n1-Bakiye\n2-Para Çek\n3-Hızlı Çek\n4-QR Çek\n5-Yatır\n6-QR Yatır\n7-PIN Değiştir\n8-Kredi Kartı Öde\n9-Diğer\n0-Çıkış"];
+    bakiye [label="Bakiyeyi Göster"];
+    para_cek [label="Para Çek"];
+    hizli_cek [label="Hızlı Çek"];
+    qr_cek [label="QR Kod ile Para Çek"];
+    para_yatir [label="Para Yatır"];
+    qr_yatir [label="QR Kod ile Para Yatır"];
+    pin_degistir [label="PIN Değiştir"];
+    kredi_odeme [label="Kredi Kartı Ödemesi"];
+    diger [label="Diğer Hizmetler"];
+    cikis [label="Kart iade et\nİyi günler!"];
+
+    // Para çekme kontrolleri
+    tutar_kontrol [label="Tutar > 0?"];
+    limit_kontrol [label="Günlük limit (7500 TL) aşıldı mı?"];
+    bakiye_kontrol [label="Yeterli bakiye var mı?"];
+    atm_nakit [label="ATM'de yeterli nakit var mı?"];
+    banknot_ariza [label="20 TL banknot arızası var mı?"];
+    para_ver [label="Para verildi\nYeni bakiye güncellendi"];
+    bakiye_yetersiz [label="Yetersiz bakiye"];
+
+    // Para yatırma ve ödemeler
+    para_yatir_ok [label="Para yatırıldı\nBakiye güncellendi"];
+    odeme_secimi [label="Ödeme türü:\n1-Asgari 2-Tam 3-Manuel"];
+    odeme_yap [label="Kredi kartı ödemesi yapıldı"];
+
+    // Devam akışı
+    devam [label="Başka işlem? (E/H)"];
+
+    // --- Giriş ve PIN ---
+    start -> dil -> giris_tipi;
+    giris_tipi -> pin_giris [label="Kart ile giriş"];
+    giris_tipi -> menu [label="QR giriş"];
+    giris_tipi -> hatali_giris [label="Geçersiz"];
+    hatali_giris -> end;
+
+    pin_giris -> pin_dogru [label="Doğru"];
+    pin_giris -> pin_hata [label="Yanlış"];
+    pin_hata -> pin_giris [label="<3 kez"];
+    pin_hata -> kart_yutuldu [label="3. hata"];
+    kart_yutuldu -> end;
+    pin_dogru -> para_birimi -> menu;
+
+    // --- Menü ---
+    menu -> bakiye [label="1"];
+    menu -> para_cek [label="2"];
+    menu -> hizli_cek [label="3"];
+    menu -> qr_cek [label="4"];
+    menu -> para_yatir [label="5"];
+    menu -> qr_yatir [label="6"];
+    menu -> pin_degistir [label="7"];
+    menu -> kredi_odeme [label="8"];
+    menu -> diger [label="9"];
+    menu -> cikis [label="0"];
+
+    // --- Para çekme zinciri ---
+    para_cek -> tutar_kontrol;
+    hizli_cek -> tutar_kontrol;
+    qr_cek -> tutar_kontrol;
+
+    tutar_kontrol -> limit_kontrol [label="Evet"];
+    tutar_kontrol -> menu [label="Hayır"];
+    limit_kontrol -> bakiye_kontrol [label="Hayır"];
+    limit_kontrol -> menu [label="Evet"];
+    bakiye_kontrol -> atm_nakit [label="Evet"];
+    bakiye_kontrol -> bakiye_yetersiz [label="Hayır"];
+    atm_nakit -> banknot_ariza [label="Evet"];
+    atm_nakit -> para_ver [label="Hayır"];
+    banknot_ariza -> para_ver [label="Hayır"];
+    banknot_ariza -> para_cek [label="Evet"];
+    bakiye_yetersiz -> menu;
+    para_ver -> devam;
+
+    // --- Para yatırma ve QR yatırma ---
+    para_yatir -> para_yatir_ok -> devam;
+    qr_yatir -> para_yatir_ok -> devam;
+
+    // --- PIN değiştir ---
+    pin_degistir -> menu;
+
+    // --- Kredi kartı ödemesi ---
+    kredi_odeme -> odeme_secimi -> bakiye_kontrol;
+    bakiye_kontrol -> odeme_yap [label="Evet"];
+    bakiye_kontrol -> bakiye_yetersiz [label="Hayır"];
+    odeme_yap -> devam;
+
+    // --- Diğer işlemler ---
+    diger -> devam;
+
+    // --- Devam döngüsü ---
+    devam -> menu [label="Evet"];
+    devam -> cikis [label="Hayır"];
+    cikis -> end;
+}
