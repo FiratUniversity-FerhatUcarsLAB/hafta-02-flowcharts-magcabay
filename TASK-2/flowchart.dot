@@ -1,0 +1,137 @@
+digraph DetayliVeAnlasilirSistem {
+    // ---- GRAFİK AYARLARI ----
+    graph [fontname="Arial", fontsize=14, rankdir="TB", splines=ortho, label="Detaylandırılmış ve Anlaşılır E-Ticaret Akış Diyagramı", labelloc=t];
+    node [fontname="Arial", fontsize=11, style="rounded,filled"];
+    edge [fontname="Arial", fontsize=10];
+
+    // ---- BAŞLANGIÇ VE BİTİŞ DÜĞÜMLERİ ----
+    start [label="BAŞLA", shape=Mdiamond, style="filled", fillcolor="#4CAF50", fontcolor="white"];
+    end_node [label="BİTİR", shape=Msquare, style="filled", fillcolor="#F44336", fontcolor="white"];
+
+    // ---- ANA AKIŞIN OMURGASI ----
+    main_menu [shape=octagon, label="ANA MENÜ", style="filled", fillcolor="#FFC107", width=2.5, height=1];
+    
+    // ---- ALT GRAFİK 1: KİMLİK DOĞRULAMA (TÜM DETAYLARLA) ----
+    subgraph cluster_auth {
+        label = "Modül A: Kimlik Doğrulama";
+        bgcolor="#FFF3E0";
+        node [fillcolor="#FFE0B2"];
+        
+        auth_menu [shape=diamond, label="Kullanıcı Seçimi?"];
+        
+        login_prompt [label="E-posta ve Şifre Gir"];
+        login_validate [shape=diamond, label="KONTROL:\nBilgiler Doğru mu?"];
+        
+        register_prompt [label="Yeni Kullanıcı Bilgilerini Gir"];
+        register_validate_format [shape=diamond, label="KONTROL:\nBilgi Formatları Geçerli mi?"];
+        register_validate_email_exists [shape=diamond, label="KONTROL:\nE-posta Zaten Kayıtlı mı?"];
+        register_create_account [label="Hesap Oluştur"];
+        
+        password_reset_prompt [label="Kurtarma için E-posta Gir"];
+        password_reset_validate [shape=diamond, label="KONTROL:\nE-posta Kayıtlı mı?"];
+        password_reset_action [label="Kurtarma Kodu Gönder ve Şifre Yenile"];
+
+        auth_menu -> login_prompt [label="Giriş Yap"];
+        auth_menu -> register_prompt [label="Üye Ol"];
+        auth_menu -> password_reset_prompt [label="Şifremi Unuttum"];
+        
+        login_prompt -> login_validate;
+        login_validate -> auth_menu [label="Hayır (Hatalı Bilgi)"];
+        
+        register_prompt -> register_validate_format;
+        register_validate_format -> auth_menu [label="Hayır"];
+        register_validate_format -> register_validate_email_exists [label="Evet"];
+        register_validate_email_exists -> auth_menu [label="Evet (Kayıtlı)"];
+        register_validate_email_exists -> register_create_account [label="Hayır"];
+        
+        password_reset_prompt -> password_reset_validate;
+        password_reset_validate -> password_reset_action [label="Evet"];
+        password_reset_validate -> auth_menu [label="Hayır"];
+        password_reset_action -> auth_menu [label="İşlem Tamam"];
+    }
+
+    // ---- ALT GRAFİK 2: ALIŞVERİŞ (STOK KONTROLÜ İLE) ----
+    subgraph cluster_browse {
+        label = "Modül B: Alışveriş";
+        bgcolor="#E3F2FD";
+        node [fillcolor="#BBDEFB"];
+        
+        show_products [label="Ürünleri Listele ve Filtrele"];
+        browse_menu [shape=diamond, label="Alışveriş Seçimi?"];
+        
+        add_to_cart_prompt_id [label="Ürün ID'si Gir"];
+        add_to_cart_validate_id [shape=diamond, label="KONTROL:\nID Geçerli mi?"];
+        add_to_cart_prompt_qty [label="Adet Gir"];
+        add_to_cart_validate_stock [shape=diamond, label="KONTROL:\nStok Yeterli mi?"];
+        add_to_cart_action [label="Sepete Ekle / Güncelle"];
+        
+        compare_process [label="Ürün Karşılaştırma Akışı"];
+        payment_process [label="Ödeme Süreci"];
+
+        show_products -> browse_menu;
+        
+        browse_menu -> add_to_cart_prompt_id [label="Sepete Ekle"];
+        add_to_cart_prompt_id -> add_to_cart_validate_id;
+        add_to_cart_validate_id -> add_to_cart_prompt_qty [label="Evet"];
+        add_to_cart_validate_id -> show_products [label="Hayır"];
+        add_to_cart_prompt_qty -> add_to_cart_validate_stock;
+        add_to_cart_validate_stock -> add_to_cart_action [label="Evet"];
+        add_to_cart_validate_stock -> show_products [label="Hayır (Yetersiz Stok)"];
+        add_to_cart_action -> show_products [label="Eklendi"];
+        
+        browse_menu -> compare_process [label="Karşılaştır"];
+        compare_process -> show_products;
+    }
+
+    // ---- ALT GRAFİK 3: SİPARİŞ YÖNETİMİ (KONTROLLERLE) ----
+    subgraph cluster_orders {
+        label = "Modül C: Siparişlerim";
+        bgcolor="#E8F5E9";
+        node [fillcolor="#C8E6C9"];
+        
+        list_orders [label="Geçmiş Siparişleri Listele"];
+        order_menu [shape=diamond, label="Sipariş İşlemi Seçimi?"];
+        track_order [label="Sipariş Takibi Yap"];
+        
+        return_validate [shape=diamond, label="KONTROL:\nSipariş İadeye Uygun mu?"];
+        return_request [label="İade Talebi Oluştur"];
+        
+        review_validate [shape=diamond, label="KONTROL:\nSipariş Değerlendirmeye\nUygun mu?"];
+        review_products [label="Ürünleri Değerlendir"];
+        
+        list_orders -> order_menu;
+        order_menu -> track_order [label="Takip Et"];
+        order_menu -> return_validate [label="İade Et"];
+        order_menu -> review_validate [label="Değerlendir"];
+
+        track_order -> list_orders;
+        return_validate -> return_request [label="Evet"];
+        return_validate -> list_orders [label="Hayır"];
+        return_request -> list_orders;
+        
+        review_validate -> review_products [label="Evet"];
+        review_validate -> list_orders [label="Hayır"];
+        review_products -> list_orders;
+    }
+    
+    // ---- ANA AKIŞ BAĞLANTILARI ----
+    // Bu bölüm, diyagramın omurgasını oluşturur ve okunabilirliği sağlar.
+    
+    start -> auth_menu;
+
+    auth_menu -> end_node [label="Çıkış"];
+    login_validate -> main_menu [label="Giriş Başarılı"];
+    register_create_account -> main_menu [label="Kayıt Başarılı"];
+    
+    main_menu -> show_products [label="Alışverişe Başla"];
+    main_menu -> list_orders [label="Siparişlerim"];
+    main_menu -> end_node [label="Oturumu Kapat"];
+    
+    browse_menu -> payment_process [label="Sepete Git"];
+    browse_menu -> main_menu [label="Ana Menüye Dön"];
+
+    payment_process -> end_node [label="Sipariş Başarılı"];
+    payment_process -> show_products [label="Sipariş İptal Edildi\n(Alışverişe Dön)"];
+    
+    list_orders -> main_menu [label="Ana Menüye Dön"];
+}
