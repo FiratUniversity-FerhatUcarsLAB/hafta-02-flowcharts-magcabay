@@ -1,4 +1,5 @@
 İsim - Soy isim : Miraç Özcan AĞCABAY
+
 Öğrenci No: 250541002
 
 sistemin kısa açıklaması (maks. 5-6 satır):
