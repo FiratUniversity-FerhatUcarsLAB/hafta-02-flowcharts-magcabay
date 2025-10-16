@@ -1,1 +1,116 @@
+digraph AkilliEvGuvSistemi_DikeySik {
+    // --- GENEL GRAFİK AYARLARI ---
+    graph [
+        rankdir=TB, // Dikey akış (Top to Bottom)
+        splines=ortho, // Daha düzenli, dik açılı bağlantılar
+        fontname="Helvetica",
+        fontsize=15,
+        labelloc=t,
+        label="IoT Tabanlı Akıllı Ev Güvenlik Sistemi (Dikey Akış)",
+        nodesep=0.6, // Düğümler arası yatay boşluk
+        ranksep=0.8  // Seviyeler arası dikey boşluk
+    ];
+
+    // --- VARSAYILAN DÜĞÜM VE KENAR STİLLERİ ---
+    node [
+        fontname="Helvetica",
+        style="rounded,filled",
+        fontsize=11,
+        shape=box,
+        fillcolor="#FFFFFF", 
+        gradientangle=270 // Gradyan yönü (yukarıdan aşağı)
+    ];
+    edge [fontname="Helvetica", fontsize=10, color="gray50"];
+
+    // --- BAŞLANGIÇ ---
+    Start [label="🚀 Sistemi Başlat", fillcolor="#E8F5E9"];
+
+    // --- 1. SENSÖR OKUMA ---
+    subgraph cluster_sensors {
+        label="1. Sensör Verisi Toplama";
+        style="rounded,filled";
+        color="#B2DFDB"; 
+        fillcolor="#E0F2F1"; 
+        node [fillcolor="#FFFFFF"];
+
+        ReadSensors [label="Tüm Sensörleri Tara\n(Hareket, Kapı, Duman, vb.)"];
+    }
+
+    // --- 2. TEHDİT ANALİZİ ---
+    subgraph cluster_analysis {
+        label="2. Veri Analizi ve Karar";
+        style="rounded,filled";
+        color="#B0BEC5";
+        fillcolor="#ECEFF1";
+        node [fillcolor="#FFFFFF"];
+
+        ComputeThreat [label="⚙️ Tehdit Skoru Hesapla"];
+        CheckThreat [shape=diamond, label="Tehdit Eşiği Aşıldı mı?"];
+    }
+
+    // --- 3. YANLIŞ ALARM FİLTRESİ ---
+    subgraph cluster_false_alarm {
+        label="3. Yanlış Alarm Filtresi";
+        style="rounded,filled";
+        color="#FFF176";
+        fillcolor="#FFF9C4";
+        node [fillcolor="#FFFFFF"];
+
+        OwnerHome [shape=diamond, label="🏠 Ev Sahibi Konumu Doğrulandı mı?\n(GPS, Wi-Fi, Manuel Mod)"];
+    }
+    
+    // --- 4. ALARM SÜRECİ ---
+    subgraph cluster_alarm_process {
+        label="4. Acil Durum Protokolü";
+        style="rounded,filled";
+        color="#EF9A9A";
+        fillcolor="#FFEBEE";
+        node [fillcolor="#FFFFFF"];
+
+        DetermineLevel [label="⚠️ Alarm Seviyesini Belirle"];
+        ActivateActions [label="🚨 Kamera Kaydı, Siren ve Işıkları Aktif Et"];
+        SendNotif [label="📲 Acil Durum Bildirimleri Gönder\n(Kullanıcı, Güvenlik Merkezi)"];
+        AlarmControl [shape=diamond, label="İptal Komutu Geldi mi?"];
+        Escalate [label="📈 Tehdidi Yükselt / Otomatik Müdahale"];
+        ResetAlarm [label="✅ Alarmı Sıfırla ve Sistemi Normale Döndür"];
+    }
+
+    // --- 5. SİSTEM BEKLEME VE DÖNGÜ ---
+    WaitNode [label="🔄 Gözetim Döngüsüne Dön", shape=ellipse, style="filled,dashed", fillcolor="#F5F5F5"];
+
+    // --- BAĞLANTILAR (İŞ AKIŞI) ---
+    Start -> ReadSensors;
+    ReadSensors -> ComputeThreat;
+    ComputeThreat -> CheckThreat;
+
+    CheckThreat -> WaitNode [label=" Hayır (Güvenli) "];
+    CheckThreat -> OwnerHome [label=" Evet (Potansiyel Tehdit!) ", fontcolor="#C62828", color="#C62828", penwidth=2];
+
+    OwnerHome -> WaitNode [label=" Evet (Yanlış Alarm) "];
+    OwnerHome -> DetermineLevel [label=" Hayır (Doğrulanmış Tehdit!) ", fontcolor="#C62828", color="#C62828", penwidth=2];
+
+    DetermineLevel -> ActivateActions -> SendNotif -> AlarmControl;
+    AlarmControl -> ResetAlarm [label=" Evet "];
+    AlarmControl -> Escalate [label=" Hayır (Tehdit Sürüyor) "];
+    Escalate -> AlarmControl [style=dashed];
+    
+    ResetAlarm -> WaitNode;
+    WaitNode -> ReadSensors [style=dashed, penwidth=2, color="slategray", label=" Sürekli Gözetim Döngüsü (7/24)"];
+
+    // --- LEJANT ---
+    subgraph cluster_legend {
+        label="Lejant";
+        rank=sink; 
+        style=rounded;
+        bgcolor="#FAFAFA";
+        node [shape=box, style="rounded,filled", height=0.5, width=1.5];
+
+        k_process [label="Süreç Adımı", fillcolor="#FFFFFF"];
+        k_decision [label="Karar Noktası", shape=diamond, fillcolor="#FFFFFF"];
+        k_alarm [label="Alarm Durumu", fillcolor="#FFEBEE"];
+        k_system [label="Sistem Döngüsü", shape=ellipse, style="filled,dashed", fillcolor="#F5F5F5"];
+
+        k_process -> k_decision -> k_alarm -> k_system [style=invis];
+    }
+}
 
