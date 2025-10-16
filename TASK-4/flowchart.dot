@@ -1,1 +1,121 @@
+digraph UniversiteDersKayitSistemi {
+    rankdir=TB;
+    splines=ortho;
+    labelloc="t";
+    label="Üniversite Ders Kayıt Sistemi - Geliştirilmiş ve Okunaklı Model";
+    fontname="Helvetica";
+    fontsize=20;
+
+    node [fontname="Helvetica", style="rounded,filled", shape=box, fillcolor="#FDFEFE"];
+    edge [fontname="Helvetica", fontsize=10];
+
+    // --- AŞAMA 1: GİRİŞ ---
+    subgraph cluster_1 {
+        label="Aşama 1: Giriş ve Rol Belirleme";
+        style=filled;
+        fillcolor="#EAF2F8";
+
+        Basla [label="Başla"];
+        Giris [label="Kullanıcı Girişi\n(Öğrenci No + Şifre)"];
+        RolKontrol [label="Rol Kontrolü", shape=diamond, fillcolor="#AED6F1"];
+
+        Basla -> Giris -> RolKontrol;
+    }
+
+    // --- ROLLER ---
+    {
+        rank=same;
+        OgrenciAkisi [label="Öğrenci Akışı Başlat", shape=plaintext];
+        DanismanPanel [label="Danışman Paneli"];
+        YoneticiPanel [label="Yönetici Paneli"];
+    }
+    RolKontrol -> OgrenciAkisi [label="Öğrenci"];
+    RolKontrol -> DanismanPanel [label="Danışman"];
+    RolKontrol -> YoneticiPanel [label="Yönetici"];
+
+    // --- AŞAMA 2: ÖĞRENCİ DERS SEÇİMİ ---
+    subgraph cluster_2 {
+        label="Aşama 2: Ders Seçim Süreci (Sepet Mantığı)";
+        style=filled;
+        fillcolor="#FDFEFE";
+
+        MaliEngel [label="Mali/İdari Engel Var mı?", shape=diamond, fillcolor="#AED6F1"];
+        DersListele [label="Ders Listeleme Ekranı\n(Filtre / Arama / Müfredat)"];
+        SepetEkle [label="Sepete Ders Ekle / Çıkar", fillcolor="#E8F8F5"];
+        KaydiTamamla [label="Kaydı Tamamla Butonu"];
+        OgrenciAkisi -> MaliEngel;
+        MaliEngel -> DersListele [label="Hayır"];
+        DersListele -> SepetEkle -> KaydiTamamla;
+    }
+
+    // --- AŞAMA 3: KONTROLLER ---
+    subgraph cluster_3 {
+        label="Aşama 3: Kayıt Kontrolleri";
+        style=filled;
+        fillcolor="#FEF9E7";
+
+        OnKosul [label="Ön Koşul Sağlanıyor mu?", shape=diamond, fillcolor="#FAD7A0"];
+        ZamanCakisma [label="Zaman Çakışması Var mı?", shape=diamond, fillcolor="#FAD7A0"];
+        Kredi [label="Kredi Limiti ≤ 35 mi?", shape=diamond, fillcolor="#FAD7A0"];
+        Kontenjan [label="Kontenjan Yeterli mi?", shape=diamond, fillcolor="#FAD7A0"];
+        YedekListe [label="Yedek Listeye Eklensin mi?", shape=diamond, fillcolor="#FAD7A0"];
+        DanismanOnay [label="Danışman Onayı Gerekli mi?\n(GPA < 2.5)", shape=diamond, fillcolor="#FAD7A0"];
+
+        KaydiTamamla -> OnKosul;
+        OnKosul -> ZamanCakisma [label="Evet"];
+        OnKosul -> DersListele [label="Hayır", color="red", style=dashed];
+
+        ZamanCakisma -> Kredi [label="Hayır"];
+        ZamanCakisma -> DersListele [label="Evet", color="red", style=dashed];
+
+        Kredi -> Kontenjan [label="Evet"];
+        Kredi -> DersListele [label="Hayır", color="red", style=dashed];
+
+        Kontenjan -> YedekListe [label="Hayır (Dolu)"];
+        Kontenjan -> DanismanOnay [label="Evet"];
+
+        YedekListe -> DanismanOnay [label="Evet"];
+        YedekListe -> DersListele [label="Hayır", color="red", style=dashed];
+    }
+
+    // --- AŞAMA 4: KAYIT DURUMU VE ÇIKIŞ ---
+    subgraph cluster_4 {
+        label="Aşama 4: Sonuç ve Durum Yönetimi";
+        style=filled;
+        fillcolor="#F5F5F5";
+
+        DurumGuncelle [label="Durum Güncelle\n(Taslak → Onay Bekliyor / Kesinleşti / Reddedildi)"];
+        KayitOzeti [label="Kayıt Özeti Göster"];
+        Basarili [label="✅ Kayıt Başarılı", shape=ellipse, fillcolor="#A9DFBF"];
+        OnayBekliyor [label="🕒 Danışman Onayı Bekliyor", shape=ellipse, fillcolor="#F9E79F"];
+        Reddedildi [label="❌ Reddedildi", shape=ellipse, fillcolor="#F5B7B1"];
+        Cikis [label="Sistemden Çıkış"];
+
+        DanismanOnay -> DurumGuncelle;
+        DurumGuncelle -> KayitOzeti;
+        KayitOzeti -> Basarili [label="Onaylandı"];
+        KayitOzeti -> OnayBekliyor [label="Onay Bekliyor"];
+        KayitOzeti -> Reddedildi [label="Reddedildi"];
+        Basarili -> Cikis;
+        OnayBekliyor -> Cikis;
+        Reddedildi -> Cikis;
+    }
+
+    // --- HATA DURUMLARI ---
+    MaliHata [label="❌ Mali Engel", shape=ellipse, fillcolor="#F5B7B1"];
+    MaliEngel -> MaliHata [label="Evet", color="red", style=dashed];
+    MaliHata -> Cikis [color="red", style=dashed];
+
+    // --- LEJANT ---
+    subgraph cluster_legend {
+        label="Lejant";
+        fontsize=10;
+        style="dashed,rounded";
+        fillcolor="#FAFAFA";
+        l1 [label="🔷 Karar Noktası", shape=plaintext];
+        l2 [label="🟩 Başarı Durumu", shape=plaintext];
+        l3 [label="🟥 Hata Durumu", shape=plaintext];
+        l4 [label="🟨 Bekleyen Durum", shape=plaintext];
+    }
+}
 
