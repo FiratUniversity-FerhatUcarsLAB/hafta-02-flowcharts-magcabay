@@ -1,1 +1,182 @@
+digraph HastaneSistemi_Gelistirilmis {
+    // === Genel Ayarlar ===
+    rankdir=LR;
+    splines=ortho;
+    nodesep=0.8;
+    ranksep=1.0;
+    graph [
+        fontname="Arial",
+        fontsize=14,
+        label="🏥 Geliştirilmiş Hastane Randevu, Tahlil ve Geri Bildirim Sistemi Akış Şeması",
+        labelloc=t,
+        bgcolor="#fafafa"
+    ];
+    node [
+        fontname="Arial",
+        fontsize=11,
+        style="rounded,filled"
+    ];
+    edge [
+        fontname="Arial",
+        fontsize=10
+    ];
+
+    // === Başlangıç & Bitiş ===
+    start [label="🟢 BAŞLA", shape=oval, fillcolor="#c8e6c9"];
+    end [label="🔴 SON", shape=oval, fillcolor="#ffcdd2"];
+
+    // === Veritabanı ===
+    db [label="💽 Veritabanı", shape=cylinder, fillcolor="#d1c4e9"];
+
+    // === 1️⃣ Kimlik Doğrulama Modülü ===
+    subgraph cluster_kimlik {
+        label="1️⃣ Kimlik Doğrulama ve Kullanıcı Yönetimi";
+        style="rounded"; color="#4b8bbe";
+        bgcolor="#f5f9ff";
+
+        n1 [label="👤 TC ve Şifre Girişi", shape=rectangle, fillcolor="#e3f2fd"];
+        n2 [label="Giriş Bilgileri Doğru mu?", shape=diamond, fillcolor="#fff9c4"];
+        n3 [label="Hatalı giriş sayısını artır", shape=rectangle, fillcolor="#e3f2fd"];
+        n4 [label="3 hatalı deneme sonrası\nhesap kilitlenir", shape=rectangle, fillcolor="#e3f2fd"];
+        n5 [label="Kullanıcı Rolü Belirlenir\n(Hasta / Doktor / Yönetici)", shape=rectangle, fillcolor="#e3f2fd"];
+
+        n1 -> n2;
+        n2 -> n3 [label=" Hayır", color="#d32f2f", fontcolor="#d32f2f"];
+        n3 -> n2 [label=" Tekrar Dene"];
+        n3 -> n4 [label=" Sayı >= 3"];
+        n2 -> n5 [label=" Evet", color="#388e3c", fontcolor="#388e3c"];
+    }
+
+    role_check [label="Kullanıcı Rolü Nedir?", shape=diamond, fillcolor="#fff9c4"];
+
+    // === 2️⃣ Ana Menü Modülü ===
+    subgraph cluster_menu {
+        label="2️⃣ Ana Menüler ve İşlem Seçimi";
+        style="rounded"; color="#ffb347";
+        bgcolor="#fff8e1";
+
+        m_hasta [label="👤 Hasta Menüsü:\n1. Randevu İşlemleri\n2. Tahlil Sonuçları\n3. Geri Bildirimler\n4. Çıkış", shape=rectangle, fillcolor="#e3f2fd"];
+        m_doktor [label="🩺 Doktor Menüsü:\n1. Randevu Takvimi\n2. Hasta Tahlilleri\n3. Anket Sonuçları\n4. Çıkış", shape=rectangle, fillcolor="#e3f2fd"];
+        m_yonetici [label="⚙️ Yönetici Menüsü:\n1. Kullanıcı Yönetimi\n2. Sistem Ayarları\n3. Anket Analizi\n4. Çıkış", shape=rectangle, fillcolor="#e3f2fd"];
+    }
+
+    // === 3️⃣ Randevu Modülü ===
+    subgraph cluster_randevu {
+        label="3️⃣ Randevu Alma Modülü";
+        style="rounded"; color="#66ccff";
+        bgcolor="#f0faff";
+
+        r1 [label="📅 Branş ve Tarih Seçimi"];
+        r2 [label="Uygun Doktor ve Saatleri Listele"];
+        r3 [label="Seçilen Saat Uygun mu?", shape=diamond, fillcolor="#fff9c4"];
+        r4 [label="Yeni Seçim Yap"];
+        r5 [label="✅ Randevuyu Onayla"];
+        r6 [label="📨 SMS/E-posta ile Bildirim Gönder"];
+        r7 [label="📋 Randevu Geçmişi Görüntüle / İptal Et"];
+
+        r1 -> r2 -> r3;
+        r3 -> r5 [label="Evet", color="#388e3c", fontcolor="#388e3c"];
+        r3 -> r4 [label="Hayır", color="#d32f2f", fontcolor="#d32f2f"];
+        r4 -> r1;
+        r5 -> r6 -> r7;
+    }
+
+    // === 4️⃣ Tahlil Modülü ===
+    subgraph cluster_tahlil {
+        label="4️⃣ Tahlil Sonuç Modülü";
+        style="rounded"; color="#ff9999";
+        bgcolor="#fff5f5";
+
+        t1 [label="🔬 Görüntülenecek Tahlili Seç"];
+        t2 [label="Tahlil Sonucu Hazır mı?", shape=diamond, fillcolor="#fff9c4"];
+        t3 [label="⏳ Hazırlanma süresi göster"];
+        t4 [label="📊 Sonucu Görüntüle (Grafik/Tablo)"];
+        t5 [label="✍️ Doktor Yorumu Görüntüle"];
+        t6 [label="📥 Sonucu İndir (PDF, Excel)"];
+
+        t1 -> t2;
+        t2 -> t3 [label="Hayır", color="#d32f2f", fontcolor="#d32f2f"];
+        t2 -> t4 [label="Evet", color="#388e3c", fontcolor="#388e3c"];
+        t4 -> t5 -> t6;
+    }
+
+    // === 5️⃣ Anket ve Geri Bildirim Modülü ===
+    subgraph cluster_anket {
+        label="5️⃣ Anket ve Geri Bildirim Modülü";
+        style="rounded"; color="#a4d792";
+        bgcolor="#f5fff5";
+
+        a1 [label="🗒️ Kullanıcı Geri Bildirim Menüsü"];
+        a2 [label="Anket veya Serbest Geri Bildirim Seçimi"];
+        a3 [label="📋 Anket Sorularını Yanıtla"];
+        a4 [label="✏️ Yorum / Öneri Yaz"];
+        a5 [label="✅ Gönder ve Veritabanına Kaydet"];
+        a6 [label="📈 Geri Bildirim Analizi (Yönetici Paneli)"];
+
+        a1 -> a2;
+        a2 -> a3 [label="Anket"];
+        a2 -> a4 [label="Serbest Yorum"];
+        a3 -> a5;
+        a4 -> a5;
+        a5 -> a6 [style=dashed, label="Analiz için gönder"];
+    }
+
+    // === Doktor ve Yönetici Akışları ===
+    doktor_randevu [label="📅 Doktor Randevu Takvimini Yönetir", shape=rectangle, fillcolor="#e3f2fd"];
+    yonetici_kullanici [label="🧩 Yönetici Kullanıcı Hesaplarını Yönetir", shape=rectangle, fillcolor="#e3f2fd"];
+
+    // === Lejant ===
+    subgraph cluster_legend {
+        label="📘 Lejant";
+        rank=sink;
+        key [shape=plaintext,
+             label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+              <tr><td align="right">Başla / Son</td><td>Oval (Yeşil / Kırmızı)</td></tr>
+              <tr><td align="right">İşlem Adımı</td><td>Dikdörtgen (Mavi)</td></tr>
+              <tr><td align="right">Karar Noktası</td><td>Baklava (Sarı)</td></tr>
+              <tr><td align="right">Veritabanı</td><td>Silindir (Mor)</td></tr>
+              <tr><td align="right">Başarılı Akış</td><td>Yeşil Ok</td></tr>
+              <tr><td align="right">Başarısız Akış</td><td>Kırmızı Ok</td></tr>
+             </table>>
+        ];
+    }
+
+    // === Ana Akış ===
+    start -> n1;
+    n5 -> role_check;
+    role_check -> m_hasta [label="Hasta"];
+    role_check -> m_doktor [label="Doktor"];
+    role_check -> m_yonetici [label="Yönetici"];
+
+    // Hasta Akışı
+    m_hasta -> r1 [label="1. Randevu"];
+    m_hasta -> t1 [label="2. Tahlil"];
+    m_hasta -> a1 [label="3. Geri Bildirim"];
+    m_hasta -> end [label="4. Çıkış"];
+
+    // Modüller Arası Dönüş
+    r7 -> m_hasta [label="Menüye Dön"];
+    t6 -> m_hasta [label="Menüye Dön"];
+    t3 -> m_hasta [label="Menüye Dön"];
+    a6 -> m_yonetici [label="Analiz"];
+
+    // Doktor ve Yönetici Akışları
+    m_doktor -> doktor_randevu;
+    doktor_randevu -> m_doktor [label="Menüye Dön"];
+    m_doktor -> end [label="4. Çıkış"];
+    m_yonetici -> yonetici_kullanici;
+    yonetici_kullanici -> m_yonetici [label="Menüye Dön"];
+    m_yonetici -> end [label="4. Çıkış"];
+
+    // Veritabanı Etkileşimleri (Kesikli)
+    edge [style=dashed, color=gray, constraint=false];
+    n2 -> db [label=" Kullanıcı Oku"];
+    n5 -> db;
+    r2 -> db [label=" Randevu Oku"];
+    r5 -> db [label=" Randevu Yaz"];
+    t2 -> db [label=" Tahlil Oku"];
+    a5 -> db [label=" Geri Bildirim Yaz"];
+    doktor_randevu -> db;
+    yonetici_kullanici -> db;
+}
 
